@@ -1,3 +1,4 @@
+/*
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router(); //manejador de rutas de express
@@ -59,8 +60,9 @@ router.post("/login", async (req, res) => {
       clave: user.clave,
       accessToken: accessToken,
       expiresIn: expiresIn,
-    });*/
+    }); AQUI VA COMENTAREADO
     res.json({accessToken});
   }
 });
 module.exports = router;
+*/

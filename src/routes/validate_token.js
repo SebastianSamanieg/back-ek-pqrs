@@ -1,3 +1,4 @@
+/*
 const jwt = require("jsonwebtoken"); //función para verificar que el token sea válido
 //y si el usuario tiene permiso para acceder
 //En el servidor se va a recibir así:
@@ -31,3 +32,4 @@ const verifyToken = (req, res, next) => {
   }
 };
 module.exports = verifyToken;
+*/
