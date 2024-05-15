@@ -1,38 +1,46 @@
 const mongoose = require("mongoose");
-const cardSchema = mongoose.Schema({
-    // Información de la tarjeta de credito
+const pqrSchema = mongoose.Schema({
+    // Información del usuario
+    usuario: {
+        type: String,
+        required: false,
+    },
+    correo: {
+        type: String,
+        required: true,
+    },
+    clave: {
+        type: String,
+        required: true,
+    },
+    // Información del pqr
     numero: {
-        type: Number,
+        type: String,
         required: true,
     },
-    fechaVencimiento: {
+    fecha: {
         type: Date,
-        required: true,
-    },
-    cvv: {
-        type: Number,
         required: true,
     },
     tipo: {
         type: String,
         required: true,
     },
-    cupo: {
-        type: Number,
-        required: true,
-    },
-    // Información del titular de la tarjeta
-    nombre: {
+    comentarios: {
         type: String,
         required: true,
     },
-    contacto: {
-        type: Number,
-        required: true,
-    },
-    correo: {
+    anexo: {
         type: String,
         required: true,
-    }
+    },
+    estado: {
+        type: String,
+        required: true,
+    },
+    justificacion: {
+        type: String,
+        required: true,
+    },
 });
-module.exports = mongoose.model("Card", cardSchema);
+module.exports = mongoose.model("PQR", pqrSchema);

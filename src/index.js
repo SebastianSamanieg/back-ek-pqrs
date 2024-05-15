@@ -2,7 +2,7 @@ const parser = require("body-parser");
 const express = require('express');
 const app = express();
 const port = 3000;
-const cardR = require("./routes/cardR");
+const pqrR = require("./routes/pqrR");
 const mongoose = require("mongoose");
 
 
@@ -12,7 +12,7 @@ app.use(parser.urlencoded({ extended: false })); //permite leer los datos que vi
 app.use(parser.json()); // transforma los datos a formato JSON
 
 //Gestión de las rutas usando el middleware
-app.use("/api", cardR);
+app.use("/api", pqrR);
 app.use(express.json());
 
 //Conexión a la base de datos
