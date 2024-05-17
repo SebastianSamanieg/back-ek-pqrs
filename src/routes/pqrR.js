@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router(); //Manejador de rutas de express
 const pqrSchema = require("../models/pqrM");
+const verifyToken = require("./validate_token");
 
 //Create - POST
-router.post("/pqrs", (req, res) => {
+router.post("/pqrs", verifyToken, (req, res) => {
     const pqr = pqrSchema(req.body);
     pqr
         .save()
@@ -12,7 +13,7 @@ router.post("/pqrs", (req, res) => {
 });
 
 //Read - GET
-router.get("/pqrs", (req, res) => {
+router.get("/pqrs", verifyToken, (req, res) => {
     pqrSchema.find()
         .then((data) => res.json(data))
         .catch((error) => res.json({ message: error }));
@@ -20,7 +21,7 @@ router.get("/pqrs", (req, res) => {
 
 //Read - GET by ID
 //Consultar un pqr por su id
-router.get("/pqrs/:id", (req, res) => {
+router.get("/pqrs/:id", verifyToken, (req, res) => {
     const { id } = req.params;
     pqrSchema
         .findById(id)
@@ -31,12 +32,12 @@ router.get("/pqrs/:id", (req, res) => {
 
 //Update - PUT
 //Modificar el nombre de un pqr por su id
-router.put("/pqrs/:id", (req, res) => {
+router.put("/pqrs/:id", verifyToken, (req, res) => {
     const { id } = req.params;
-    const { usuario, correo, clave, numero, fecha, tipo, comentarios, anexo, estado, justificacion } = req.body;
+    const { numero, fecha, tipo, comentarios, anexo, estado, justificacion } = req.body;
     pqrSchema
         .updateOne({ _id: id }, {
-            $set: { usuario, correo, clave, numero, fecha, tipo, comentarios, anexo, estado, justificacion }
+            $set: { numero, fecha, tipo, comentarios, anexo, estado, justificacion }
         })
         .then((data) => res.json(data))
         .catch((error) => res.json({ message: error }));
@@ -44,7 +45,7 @@ router.put("/pqrs/:id", (req, res) => {
 
 
 // Delete - DELETE
-router.delete("/pqrs/:id", (req, res) => {
+router.delete("/pqrs/:id", verifyToken, (req, res) => {
     const { id } = req.params;
     pqrSchema
         .findByIdAndDelete(id)

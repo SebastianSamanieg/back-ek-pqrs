@@ -1,18 +1,5 @@
 const mongoose = require("mongoose");
 const pqrSchema = mongoose.Schema({
-    // Información del usuario
-    usuario: {
-        type: String,
-        required: false,
-    },
-    correo: {
-        type: String,
-        required: true,
-    },
-    clave: {
-        type: String,
-        required: true,
-    },
     // Información del pqr
     numero: {
         type: String,
@@ -37,10 +24,19 @@ const pqrSchema = mongoose.Schema({
     estado: {
         type: String,
         required: true,
+        default: "Enviado",
     },
     justificacion: {
         type: String,
+        required: false,
+    },
+    idUsuario: {
+        type: mongoose.Schema.Types.ObjectId, ref : 'User',
         required: true,
+    },
+    idGestor: {
+        type: mongoose.Schema.Types.ObjectId, ref : 'User',
+        required: false,
     },
 });
 module.exports = mongoose.model("PQR", pqrSchema);

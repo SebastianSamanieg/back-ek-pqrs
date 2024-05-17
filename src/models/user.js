@@ -1,4 +1,3 @@
-/*
 const mongoose = require("mongoose"); // importando el componente mongoose
 const bcrypt = require("bcrypt"); // importando el componente bcrypt
 const userSchema = mongoose.Schema({
@@ -20,4 +19,3 @@ userSchema.methods.encryptClave = async (clave) => {
   return bcrypt.hash(clave, salt);
 };
 module.exports = mongoose.model("User", userSchema);
-*/
