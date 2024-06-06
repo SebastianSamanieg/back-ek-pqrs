@@ -1,63 +1,113 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const router = express.Router(); //manejador de rutas de express
+const router = express.Router(); // Manejador de rutas de express
 const userSchema = require("../models/user");
 const jwt = require("jsonwebtoken");
 const verifyToken = require("./validate_token");
 
-//Revisar esta forma de autenticarse https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs
 router.post("/signup", async (req, res) => {
-  const { usuario, correo, clave } = req.body;
+  const { usuario, correo, clave, tipo_de_usuario } = req.body;
+
+  // Validar que se reciban todos los campos requeridos
+  if (!usuario || !correo || !clave) {
+    return res.status(400).json({ error: "Todos los campos son obligatorios" });
+  }
+
+  const existingUser = await userSchema.findOne({ correo: correo });
+  if (existingUser) {
+    return res.status(400).json({ error: "El correo ya está registrado" });
+  }
+
+  // Validar el tipo de usuario
+  const tiposValidos = ["gestor", "usuario"];
+  if (tipo_de_usuario & !tiposValidos.includes(tipo_de_usuario)) {
+    return res.status(400).json({ error: "Tipo de usuario no válido" });
+  }
+
+  // Crear un nuevo usuario
   const user = new userSchema({
     usuario: usuario,
     correo: correo,
     clave: clave,
+    tipo_de_usuario: tipo_de_usuario,
   });
+
   user.clave = await user.encryptClave(user.clave);
-  await user.save(); //save es un método de mongoose para guardar datos en MongoDB //segundo parámetro: un texto que hace que el código generado sea único //tercer parámetro: tiempo de expiración (en segundos, 24 horas en segundos)
-  //primer parámetro: payload - un dato que se agrega para generar el token
+
+  // Guardar el usuario en la base de datos
+  await user.save(); // save es un método de mongoose para guardar datos en MongoDB
+
+  // Generar un token JWT
+  const token = jwt.sign({ id: user._id }, process.env.SECRET, {
+    expiresIn: 60 * 60 * 24, // un día en segundos
+  });
 
   res.json({
     auth: true,
+    token: token,
     user,
   });
 });
 
-//inicio de sesión
+// Inicio de sesión
 router.post("/login", async (req, res) => {
-  // validaciones
-  const { error } = userSchema.validate(req.body.correo, req.body.clave);
-  if (error) return res.status(400).json({ error: error.details[0].message });
-  //Buscando el usuario por su dirección de correo
-  const user = await userSchema.findOne({ correo: req.body.correo });
+  const { correo, clave } = req.body;
 
-  //validando si no se encuentra
-  if (!user)
-    return res.status(400).json({ error: "Usuario o clave incorrectos" });
+  // Validar que se reciban todos los campos requeridos
+  if (!correo || !clave) {
+    return res.status(400).json({ error: "Todos los campos son obligatorios" });
+  }
 
-  //Transformando la contraseña a su valor original para
-  //compararla con la clave que se ingresa en el inicio de sesión
+  // Buscar el usuario por su dirección de correo
+  const user = await userSchema.findOne({ correo: correo });
+
+  // Validar si no se encuentra el usuario
+  if (!user) {
+    return res
+      .status(400)
+      .json({ error: "Usuario no existe en la base de datos" });
+  }
+
+  // Comparar la clave ingresada con la clave almacenada en la base de datos
   const validPassword = await bcrypt.compare(req.body.clave, user.clave);
   let accessToken = null;
   if (!validPassword) {
-    return res.status(400).json({ error: "Usuario o clave incorrectos" });
+    return res.status(400).json({ error: "Clave incorrecta" });
   } else {
     const expiresIn = 24 * 60 * 60;
-    accessToken = jwt.sign(
-      { id: user.id }, 
-      process.env.SECRET, {
-      expiresIn: expiresIn
-    });
-
-   /*res.json({
-      id: user._id,
-      usuario: user.usuario,
-      correo: user.correo,
-      clave: user.clave,
-      accessToken: accessToken,
+    accessToken = jwt.sign({ id: user.id }, process.env.SECRET, {
       expiresIn: expiresIn,
-    });*/
-    res.json({accessToken});
+    });
+    res.json({ datosUsuario: {accessToken: accessToken,  usuario: user.usuario, tipo_de_usuario:user.tipo_de_usuario, id: user.id} });
   }
 });
+
+// Endpoint para obtener todos los usuarios
+router.get("/users", async (req, res) => {
+  try {
+    const users = await userSchema.find(); // Excluir el campo 'clave' de los resultados
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los usuarios" });
+  }
+});
+
+// Endpoint para eliminar un usuario por su ID
+router.delete("/users/:id", async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Buscar y eliminar el usuario por su ID
+    const deletedUser = await userSchema.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    res.json({ message: "Usuario eliminado correctamente" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar el usuario" });
+  }
+});
+
 module.exports = router;
